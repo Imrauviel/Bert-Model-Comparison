@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def clean_titles(ser: pd.Series) -> pd.Series:
     ser = ser.copy()
@@ -48,7 +49,7 @@ def first_genre_filmweb(df_: pd.DataFrame, genres: set) -> pd.DataFrame:
 
 
 ## Not sure if what's after -> is legal
-def down_sample_both_dfs(df1: pd.DataFrame, df2:pd.DataFrame, n:int=1) -> tuple:
+def down_sample_both_dfs(df1: pd.DataFrame, df2:pd.DataFrame, n_min:int=1, n_max:int=np.inf) -> tuple:
     same_genres = set(df1.genre) & set(df2.genre)
     # print(f"Genres without the threshold: {same_genres}\n")
     groupped_df1 = df1.groupby("genre")
@@ -60,8 +61,8 @@ def down_sample_both_dfs(df1: pd.DataFrame, df2:pd.DataFrame, n:int=1) -> tuple:
     groupped_df1_sizes = groupped_df1.size()
     groupped_df2_sizes = groupped_df2.size()
 
-    genres_df1_n = groupped_df1_sizes[groupped_df1_sizes >= n].index
-    genres_df2_n = groupped_df2_sizes[groupped_df2_sizes >= n].index
+    genres_df1_n = groupped_df1_sizes[groupped_df1_sizes >= n_min].index
+    genres_df2_n = groupped_df2_sizes[groupped_df2_sizes >= n_min].index
 
     same_genres_n = set(genres_df1_n) & set(genres_df2_n)
     # print(f"Genres with the inclusion threshold of {n}: {same_genres_n}\n")
@@ -76,6 +77,6 @@ def down_sample_both_dfs(df1: pd.DataFrame, df2:pd.DataFrame, n:int=1) -> tuple:
     
     for key, value in mins_for_every_genre.items():
 #         print(groupped_df1[key].sample(n=value))
-        df1_new_beggining = pd.concat([df1_new_beggining, df1[df1["genre"] == key].sample(n=value, random_state=42)], axis=0)
-        df2_new_beggining = pd.concat([df2_new_beggining, df2[df2["genre"] == key].sample(n=value, random_state=42)], axis=0)
+        df1_new_beggining = pd.concat([df1_new_beggining, df1[df1["genre"] == key].sample(n=min(value, n_max), random_state=42)], axis=0)
+        df2_new_beggining = pd.concat([df2_new_beggining, df2[df2["genre"] == key].sample(n=min(value, n_max), random_state=42)], axis=0)
     return df1_new_beggining.reset_index(drop=True), df2_new_beggining.reset_index(drop=True)
